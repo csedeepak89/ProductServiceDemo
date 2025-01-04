@@ -1,4 +1,10 @@
 package com.ecommerce.productservicedemo.models;
 
-public class Product {
+import lombok.Data;
+
+@Data
+public class Product extends Base{
+    private String title;
+    private Double price;
+    private Category category;
 }
