@@ -6,6 +6,7 @@ import com.ecommerce.productservicedemo.models.Product;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -15,52 +16,38 @@ public class FakeStoreProductService implements ProductService {
         this.restTemplate = restTemplate;
     }
 
-    public Product getSingleProduct(Long productId) {
+    @Override
+    public Product getSingleProduct(Long id) {
         FakeStoreProductDto fakeStoreProductDto =
-                restTemplate.getForObject("https://fakestoreapi.com/products/" + productId,
-                        FakeStoreProductDto.class);
-
-        System.out.println("DTO received: " + fakeStoreProductDto);
-
-        if (fakeStoreProductDto == null) {
-            throw new RuntimeException("Product not found");
-        }
-
-        Product product = new Product();
-        product.setId(fakeStoreProductDto.getId());
-        product.setPrice(fakeStoreProductDto.getPrice());
-
-        Category category = new Category();
-        category.setName(fakeStoreProductDto.getCategory());
-        category.setDescription(fakeStoreProductDto.getDescription());
-        product.setCategory(category);
-
-        product.setTitle(fakeStoreProductDto.getTitle());
-        return product;
+                restTemplate.getForObject("https://fakestoreapi.com/products/" + id,
+                FakeStoreProductDto.class);
+        //Now convert FakeStoreProductDto to my Product
+        //instead of writing code here, we make a helper function to do this conversion
+        return convertFakeStoreProductDtoToProduct(fakeStoreProductDto);
     }
-//    @Override
-//    public Product getSingleProduct(Long id) {
-//        FakeStoreProductDto fakeStoreProductDto =
-//                restTemplate.getForObject("https://fakestoreapi.com/products/" + id,
-//                FakeStoreProductDto.class);
-//        //Now convert FakeStoreProductDto to my Product
-//        //instead of writing code here, we make a helper function to do this conversion
-//        return convertFakeStoreProductDtoToProduct(fakeStoreProductDto);
-//    }
-
+/*
+    URL to fetch all products from FakeStore https://fakestoreapi.com/products
+ */
     @Override
     public List<Product> getAllProducts() {
-        return List.of();
+        FakeStoreProductDto[] fakeStoreProductDtos =
+                restTemplate.getForObject("https://fakestoreapi.com/products",
+                FakeStoreProductDto[].class);
+        List<Product> products = new ArrayList<>();
+        for(FakeStoreProductDto fakeStoreProductDto : fakeStoreProductDtos){
+            products.add(convertFakeStoreProductDtoToProduct(fakeStoreProductDto));
+        }
+        return products;
     }
 
-//    private Product convertFakeStoreProductDtoToProduct(FakeStoreProductDto fakeStoreProductDto) {
-//        Product product = new Product();
-//        product.setId(fakeStoreProductDto.getId());
-//        product.setCategory(new Category(fakeStoreProductDto.getCategory(), fakeStoreProductDto.getDescription()));
-//        product.setTitle(fakeStoreProductDto.getTitle());
-//        product.setPrice(fakeStoreProductDto.getPrice());
-//        return product;
-//    }
+    private Product convertFakeStoreProductDtoToProduct(FakeStoreProductDto fakeStoreProductDto) {
+        Product product = new Product();
+        product.setId(fakeStoreProductDto.getId());
+        product.setCategory(new Category(fakeStoreProductDto.getCategory(), fakeStoreProductDto.getDescription()));
+        product.setTitle(fakeStoreProductDto.getTitle());
+        product.setPrice(fakeStoreProductDto.getPrice());
+        return product;
+    }
 }
 
 
