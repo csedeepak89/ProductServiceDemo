@@ -3,7 +3,10 @@ package com.ecommerce.productservicedemo.services;
 import com.ecommerce.productservicedemo.dtos.FakeStoreProductDto;
 import com.ecommerce.productservicedemo.models.Category;
 import com.ecommerce.productservicedemo.models.Product;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpMessageConverterExtractor;
+import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
@@ -38,6 +41,41 @@ public class FakeStoreProductService implements ProductService {
             products.add(convertFakeStoreProductDtoToProduct(fakeStoreProductDto));
         }
         return products;
+    }
+
+    @Override
+    public Product updateProduct(Long id, Product product) {
+        //restTemplate.put(); //PATCH
+        RequestCallback requestCallback = restTemplate.httpEntityCallback(product, FakeStoreProductDto.class);
+        HttpMessageConverterExtractor<FakeStoreProductDto> responseExtractor =
+                new HttpMessageConverterExtractor(FakeStoreProductDto.class, restTemplate.getMessageConverters());
+        FakeStoreProductDto fakeStoreProductDto = restTemplate.execute(
+                "https://fakestoreapi.com/products/" + id,
+                HttpMethod.PATCH,
+                requestCallback,
+                responseExtractor);
+
+//        FakeStoreProductDto fakeStoreProductDto = restTemplate.patchForObject("https://fakestoreapi.com/products/" + id,
+//                product, FakeStoreProductDto.class);
+        return convertFakeStoreProductDtoToProduct(fakeStoreProductDto);
+    }
+
+    @Override
+    public Product replaceProduct(Long id, Product product) {
+        RequestCallback requestCallback = restTemplate.httpEntityCallback(product, FakeStoreProductDto.class);
+        HttpMessageConverterExtractor<FakeStoreProductDto> responseExtractor =
+                new HttpMessageConverterExtractor(FakeStoreProductDto.class, restTemplate.getMessageConverters());
+        FakeStoreProductDto fakeStoreProductDto = restTemplate.execute(
+                "https://fakestoreapi.com/products/" + id,
+                HttpMethod.PUT,
+                requestCallback,
+                responseExtractor);
+/*
+below code is not working giving 500 error on Postman
+ */
+//        FakeStoreProductDto fakeStoreProductDto = restTemplate.patchForObject("https://fakestoreapi.com/products/" + id,
+//                product, FakeStoreProductDto.class);
+        return convertFakeStoreProductDtoToProduct(fakeStoreProductDto);
     }
 
     private Product convertFakeStoreProductDtoToProduct(FakeStoreProductDto fakeStoreProductDto) {
